@@ -1,9 +1,9 @@
-import google.generativeai as genai
 from twitchio.ext import commands, routines
 import twitchio.errors
 import os
 import auth
 import json
+import model
 from cryptography.fernet import Fernet
 import asyncio
 
@@ -18,17 +18,6 @@ token_dict = json.loads(decrypted_data.decode())
 token = token_dict["access_token"]
 PREFIX = "!"
 CHANNEL = ["jose_gtj"]
-
-#Criar o modelo de IA
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-#Arquivo contendo as características do modelo
-context = open("file_context.txt", "r", encoding="UTF-8")
-#Escolhendo o modelo utilizado, passando o contexto e as opções de segurança
-model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=context, 
-                              safety_settings= {genai.types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT:
-                                                genai.types.HarmBlockThreshold.BLOCK_ONLY_HIGH})
-#Criando um novo chat com a IA
-chat = model.start_chat(history=[])
 
 #Configurar o bot
 class Bot(commands.Bot):
