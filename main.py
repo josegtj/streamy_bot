@@ -40,7 +40,7 @@ class Bot(commands.Bot):
     @routines.routine(seconds=60, wait_first=True)
     async def check_stream_status():
         stream = await bot.fetch_streams(user_logins = CHANNEL)
-        if stream == []:
+        if stream:
             print("Nena está on")
             bot.isLive += 1
             if bot.isLive == 1:
