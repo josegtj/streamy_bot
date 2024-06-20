@@ -1,5 +1,6 @@
 from twitchio.ext import commands, routines
 from cryptography.fernet import Fernet
+from datetime import datetime, timedelta, timezone
 import twitchio.errors
 import os
 import auth
@@ -23,6 +24,32 @@ CHANNEL = ["nenanee_"]
 
 chat = model.create_chat()
 
+#Formatar o tempo de duração da live:
+def format_timedelta(td):
+    # Get the total number of seconds
+    total_seconds = int(td.total_seconds())
+    
+    # Calculate the number of days, hours, minutes, and seconds
+    days = total_seconds // 86400
+    total_seconds %= 86400
+    hours = total_seconds // 3600
+    total_seconds %= 3600
+    minutes = total_seconds // 60
+    seconds = total_seconds % 60
+    
+    # Create a formatted string
+    parts = []
+    if days > 0:
+        parts.append(f"{days} d")
+    if hours > 0:
+        parts.append(f"{hours} h")
+    if minutes > 0:
+        parts.append(f"{minutes} m")
+    if seconds > 0:
+        parts.append(f"{seconds} s")
+    
+    return " ".join(parts)
+
 #Configurar o bot
 class Bot(commands.Bot):
     user = ""
@@ -41,9 +68,9 @@ class Bot(commands.Bot):
     async def check_stream_status():
         stream = await bot.fetch_streams(user_logins = CHANNEL)
         if stream:
-            print("Nena está on")
-            bot.isLive += 1
-            if bot.isLive == 1:
+            time_delta = datetime.now(timezone.utc) - stream[0].started_at
+            print(f"Nena está on há: {format_timedelta(time_delta)}")
+            if time_delta.total_seconds() < 60:
                 chan = bot.get_channel(CHANNEL[0])
                 if chan:
                     chat = model.create_chat()
@@ -51,7 +78,6 @@ class Bot(commands.Bot):
                     await chan.send(response.text)
         else:
             print("Nena está off")
-            bot.isLive == 0
 
     @commands.command()
     async def ask(self, ctx: commands.Context, *, message: str,) -> None:
@@ -61,7 +87,7 @@ class Bot(commands.Bot):
         response = model.send_message(message,chat,ctx.author.name)
         await ctx.send(response.text)
 
-    # check_stream_status.start()
+    check_stream_status.start()
 
 max_retries = 3
 retry_delay = 1
@@ -70,7 +96,7 @@ for attempt in range(1, max_retries + 1):
         # Inicia o bot
         print("Bot iniciando...")
         bot = Bot()
-        bot.run()
+        asyncio.run(bot.run())
     except twitchio.errors.AuthenticationError as e:
         # Erro quando os tokens expiram
         if attempt == max_retries:
