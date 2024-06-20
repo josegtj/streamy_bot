@@ -57,11 +57,11 @@ class Bot(commands.Bot):
     async def ask(self, ctx: commands.Context, *, message: str,) -> None:
         # Comando !ask, que será chamado quando algum usuário utilizá-lo
         global chat
-        print(f"{ctx.author} diz: {message}")
-        response = model.send_message(message,chat,ctx.author)
+        print(f"{ctx.author.name} diz: {message}")
+        response = model.send_message(message,chat,ctx.author.name)
         await ctx.send(response.text)
 
-    check_stream_status.start()
+    # check_stream_status.start()
 
 max_retries = 3
 retry_delay = 1
