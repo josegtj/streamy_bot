@@ -91,11 +91,11 @@ class Bot(commands.Bot):
 
 max_retries = 3
 retry_delay = 1
+bot = Bot()
 for attempt in range(1, max_retries + 1):
     try:
         # Inicia o bot
         print("Bot iniciando...")
-        bot = Bot()
         asyncio.run(bot.run())
     except twitchio.errors.AuthenticationError as e:
         # Erro quando os tokens expiram
