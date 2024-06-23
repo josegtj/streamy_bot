@@ -112,6 +112,8 @@ async def refresh():
        print(request.get("error"))
        print(request.get("message")) 
        return
+    else:
+        print("Novo token de acesso gerado! (refresh)")
     dict_str = json.dumps(request)
     encrypted_data = cipher_suite.encrypt(dict_str.encode())
     with open('encrypted_access.bin', 'wb') as file:
@@ -125,15 +127,13 @@ def revoke_token():
     base_url = "https://id.twitch.tv/oauth2/revoke"
     data = {
         "client_id":CLIENT_ID,
-        "token":quote(token_dict['access_token'])
+        "token":token_dict['access_token']
     }
-    request = requests.post(base_url, json=data)
-    request = request.json()
-    if request["status"] == 200:
+    request = requests.post(base_url, data=data)
+    if request.status_code == 200:
         print("Código de acesso revogado")
     else:
+        request = request.json()
         print("Falha")
         print(request["status"])
         print(request["message"])
-
-# asyncio.run(auth())

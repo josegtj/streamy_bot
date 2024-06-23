@@ -87,24 +87,25 @@ class Bot(commands.Bot):
         response = model.send_message(message,chat,ctx.author.name)
         await ctx.send(response.text)
 
-    check_stream_status.start()
+    check_stream = check_stream_status.start()
 
 max_retries = 3
 retry_delay = 1
 bot = Bot()
+
 for attempt in range(1, max_retries + 1):
     try:
         # Inicia o bot
         print("Bot iniciando...")
-        asyncio.run(bot.run())
+        bot.run()
     except twitchio.errors.AuthenticationError as e:
         # Erro quando os tokens expiram
         if attempt == max_retries:
             print("Número máximo de tentativas alcançado")
             break
         else:
+            print("Falha na autenticação, tentando novo token")
+            print(e)
             asyncio.run(auth.refresh())
             token = os.getenv("ACCESS_TOKEN")
             time.sleep(retry_delay)
-            print("Falha na autenticação, tentando novo token")
-            print(e)
