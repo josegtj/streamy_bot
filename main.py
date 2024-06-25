@@ -106,6 +106,7 @@ for attempt in range(1, max_retries + 1):
         else:
             print("Falha na autenticação, tentando novo token")
             print(e)
+            bot.close()
             asyncio.run(auth.refresh())
             token = os.getenv("ACCESS_TOKEN")
             time.sleep(retry_delay)
