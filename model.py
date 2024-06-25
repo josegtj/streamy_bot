@@ -1,4 +1,5 @@
 import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.api_core.exceptions
 import os
 import time
@@ -9,8 +10,8 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 context = open("file_context.txt", "r", encoding="UTF-8")
 #Escolhendo o modelo utilizado, passando o contexto e as opções de segurança
 model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=context, 
-                              safety_settings= {genai.types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT:
-                                                genai.types.HarmBlockThreshold.BLOCK_ONLY_HIGH})
+                              safety_settings= {HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT:HarmBlockThreshold.BLOCK_ONLY_HIGH,
+						HarmCategory.HARM_CATEGORY_HARASSMENT:HarmBlockThreshold.BLOCK_ONLY_HIGH,})
 
 def create_chat():
     chat = model.start_chat(history=[])
@@ -35,7 +36,7 @@ def send_message(message:str, chat, author:str=""):
         except genai.types.StopCandidateException as e:
             print(e)
             print("Erro nos filtros de segurança, reformulando mensagem.")
-            response = chat.send_message(f"{author} quase fez você dizer bobagem! Dê um sermão EDUCADO nele")
+            response = chat.send_message(f"Você quase disse besteira! Peça desculpas ao chat e ao {author}")
             return response
         else:
             print(f"O bot diz: {response.text}")
