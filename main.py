@@ -79,13 +79,22 @@ class Bot(commands.Bot):
         else:
             print("Nena está off")
 
+    @commands.cooldown(rate=1, per=10, bucket=commands.Bucket.channel)
     @commands.command()
     async def ask(self, ctx: commands.Context, *, message: str,) -> None:
         # Comando !ask, que será chamado quando algum usuário utilizá-lo
         global chat
         print(f"{ctx.author.name} diz: {message}")
-        response = model.send_message(message,chat,ctx.author.name)
-        await ctx.send(response.text)
+        try:
+            response = model.send_message(message, chat, ctx.author.name)
+            await ctx.send(response.text)
+        except commands.errors.CommandOnCooldown:
+            await ctx.send("Comando em cooldown...")
+            
+    async def event_command_error(self, ctx, error: Exception, *, message :str) -> None:
+        if isinstance(error, commands.CommandOnCooldown):
+            print(f"{ctx.author.name} diz: {message}")
+            await ctx.send("Comando em cooldown...")
 
     check_stream = check_stream_status.start()
 
