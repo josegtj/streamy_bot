@@ -3,7 +3,7 @@ from twitchAPI.type import AuthScope, ChatEvent, InvalidTokenException
 from twitchAPI.chat import Chat, EventData, ChatCommand
 from twitchAPI.chat.middleware import ChannelCommandCooldown
 from twitchAPI.eventsub.websocket import EventSubWebsocket
-from twitchAPI.object.eventsub import StreamOnlineEvent
+from twitchAPI.object.eventsub import StreamOnlineEvent, ChannelUpdateEvent
 from twitchAPI.helper import first
 import auth, model, json, os, asyncio
 from cryptography.fernet import Fernet
@@ -12,13 +12,20 @@ APP_ID = 'koyw45naylibn6z1p8rajnjo1rxgv6'
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 chat_model = model.create_chat()
 TARGET_CHANNEL = "jose_gtj"
+is_live = False
 
 key = os.getenv("ENCRYPT_KEY")
 cipher_suite = Fernet(key)
 
 async def on_ready(cmd: EventData):
+    global is_live
     await cmd.chat.join_room(TARGET_CHANNEL)
     print("Bot está operante...")
+    while is_live == False:
+        continue
+    else:
+        response = model.send_message("A Live acabou de começar, dê um olá ao pessoal do chat!", chat_model)
+        await cmd.chat.send_message(TARGET_CHANNEL, "Teste")
 
 # this will be called whenever the !ask command is issued
 async def ask_command(cmd: ChatCommand):
@@ -32,11 +39,10 @@ async def ask_command(cmd: ChatCommand):
 async def handle_blocked_user(cmd: ChatCommand):
     await cmd.reply("/me Comando em cooldown...")
 
-async def on_stream_online(data: StreamOnlineEvent):
-    print(TARGET_CHANNEL + "está ao vivo!")
-    await data.chat.join_room(TARGET_CHANNEL)
-    response = model.send_message("A Live acabou de começar, dê um olá ao pessoal do chat!", chat_model)
-    await data.chat.send_message(TARGET_CHANNEL, response.text)
+async def on_stream_online(data: ChannelUpdateEvent):
+    global is_live
+    is_live = True
+    print(TARGET_CHANNEL + " está ao vivo!")
 
 # this is where we set up the bot
 async def run():
