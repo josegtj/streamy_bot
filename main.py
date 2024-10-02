@@ -3,29 +3,23 @@ from twitchAPI.type import AuthScope, ChatEvent, InvalidTokenException
 from twitchAPI.chat import Chat, EventData, ChatCommand
 from twitchAPI.chat.middleware import ChannelCommandCooldown
 from twitchAPI.eventsub.websocket import EventSubWebsocket
-from twitchAPI.object.eventsub import StreamOnlineEvent, ChannelUpdateEvent
+from twitchAPI.object.eventsub import StreamOnlineEvent
 from twitchAPI.helper import first
 import auth, model, json, os, asyncio
 from cryptography.fernet import Fernet
 
 APP_ID = 'koyw45naylibn6z1p8rajnjo1rxgv6'
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
-chat_model = model.create_chat()
 TARGET_CHANNEL = "jose_gtj"
-is_live = False
+chat_model = model.create_chat()
+chat = None
 
 key = os.getenv("ENCRYPT_KEY")
 cipher_suite = Fernet(key)
 
 async def on_ready(cmd: EventData):
-    global is_live
     await cmd.chat.join_room(TARGET_CHANNEL)
     print("Bot está operante...")
-    while is_live == False:
-        continue
-    else:
-        response = model.send_message("A Live acabou de começar, dê um olá ao pessoal do chat!", chat_model)
-        await cmd.chat.send_message(TARGET_CHANNEL, "Teste")
 
 # this will be called whenever the !ask command is issued
 async def ask_command(cmd: ChatCommand):
@@ -39,13 +33,15 @@ async def ask_command(cmd: ChatCommand):
 async def handle_blocked_user(cmd: ChatCommand):
     await cmd.reply("/me Comando em cooldown...")
 
-async def on_stream_online(data: ChannelUpdateEvent):
-    global is_live
-    is_live = True
+async def on_stream_online(data: StreamOnlineEvent):
+    global chat, chat_model
     print(TARGET_CHANNEL + " está ao vivo!")
+    response = model.send_message("A live acabou de começar, dê um oi pro pessoal", chat_model)
+    await chat.send_message(TARGET_CHANNEL, response.text)
 
 # this is where we set up the bot
 async def run():
+    global chat
     # set up twitch api instance and call auth function in auth.py to get tokens
     twitch = await Twitch(APP_ID, authenticate_app=False)
     twitch.auto_refresh_auth = False
@@ -78,7 +74,7 @@ async def run():
     
     chat.register_event(ChatEvent.READY, on_ready)
     chat.start()
-    
+
     channel = await first(twitch.get_users(logins=TARGET_CHANNEL))
     
     eventsub = EventSubWebsocket(twitch)

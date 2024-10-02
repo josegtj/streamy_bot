@@ -39,7 +39,7 @@ def send_message(message:str, chat, author:str=""):
             response = chat.send_message(f"Você quase disse besteira! Peça desculpas ao chat e ao {author}")
             return response
         else:
-            print(f"{author}: {message}")
-            print(f"Streamy: {response.text}")
+            print(f"---\n{author}: {message}")
+            print(f"Streamy: {response.text}---")
             return response
 
