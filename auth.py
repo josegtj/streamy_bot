@@ -14,7 +14,7 @@ def generate_random_string(length:int):
     return ''.join(random.choice(letters) for i in range(length))
 
 CLIENT_ID = "koyw45naylibn6z1p8rajnjo1rxgv6"
-CLIENT_SECRET = "34eadiy9ag35hkmqpw75h37u8yvoe0"
+CLIENT_SECRET = "rott8hipkpfjg9bqlpfpokaq13ectb"
 REDIRECT_URI = "http://localhost:3000"
 SCOPE = "chat:read+chat:edit"
 STATE = generate_random_string(16)
@@ -87,7 +87,6 @@ async def auth():
         "redirect_uri":REDIRECT_URI
     }
     request = requests.post(base_url, json=data).json()
-    request["access_token"] = "tokendeacesso"
     dict_str = json.dumps(request)
     encrypted_data = cipher_suite.encrypt(dict_str.encode())
     with open('encrypted_access.bin', 'wb') as file:

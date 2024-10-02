@@ -1,121 +1,87 @@
-from twitchio.ext import commands, routines
+from twitchAPI.twitch import Twitch
+from twitchAPI.type import AuthScope, ChatEvent, InvalidTokenException
+from twitchAPI.chat import Chat, EventData, ChatCommand
+from twitchAPI.chat.middleware import ChannelUserCommandCooldown
+import auth, model, json, os, asyncio
 from cryptography.fernet import Fernet
-from datetime import datetime, timedelta, timezone
-import twitchio.errors
-import os
-import auth
-import json
-import model
-import time
-import asyncio
 
+APP_ID = 'koyw45naylibn6z1p8rajnjo1rxgv6'
+USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
+TARGET_CHANNEL = 'jose_gtj'
+chat_model = model.create_chat()
 
 key = os.getenv("ENCRYPT_KEY")
 cipher_suite = Fernet(key)
 
-with open('encrypted_access.bin', 'rb') as file:
-        encrypted_data = file.read()
-decrypted_data = cipher_suite.decrypt(encrypted_data)
-token_dict = json.loads(decrypted_data.decode())
+# Função chamada quando o bot está pronto
+async def on_ready(ready_event: EventData):
+    print('Bot is ready for work, joining channels')
+    # join our target channel, if you want to join multiple, either call join for each individually
+    # or even better pass a list of channels as the argument
+    await ready_event.chat.join_room(TARGET_CHANNEL)
+    # you can do other bot initialization things in here
+    # Inicializando o chat com o modelo de IA
 
-token = token_dict["access_token"]
-PREFIX = "!"
-CHANNEL = ["nenanee_"]
 
-chat = model.create_chat()
+# this will be called whenever the !ask command is issued
+async def ask_command(cmd: ChatCommand):
+    if len(cmd.parameter) == 0:
+        await cmd.reply('Você precisa dizer algo ao bot')
+    else:
+        global chat_model
+        response = model.send_message(cmd.parameter, chat_model, cmd.user.name)
+        await cmd.reply(response.text)
 
-#Formatar o tempo de duração da live:
-def format_timedelta(td):
-    # Get the total number of seconds
-    total_seconds = int(td.total_seconds())
-    
-    # Calculate the number of days, hours, minutes, and seconds
-    days = total_seconds // 86400
-    total_seconds %= 86400
-    hours = total_seconds // 3600
-    total_seconds %= 3600
-    minutes = total_seconds // 60
-    seconds = total_seconds % 60
-    
-    # Create a formatted string
-    parts = []
-    if days > 0:
-        parts.append(f"{days} d")
-    if hours > 0:
-        parts.append(f"{hours} h")
-    if minutes > 0:
-        parts.append(f"{minutes} m")
-    if seconds > 0:
-        parts.append(f"{seconds} s")
-    
-    return " ".join(parts)
+async def handle_blocked_user(cmd: ChatCommand):
+    await cmd.reply("/me Comando em cooldown...")
 
-#Configurar o bot
-class Bot(commands.Bot):
-    user = ""
-    isLive = 0
-    chan = None
-    def __init__(self):
-        #Inicializando o bot
-        super().__init__(token = token, prefix = PREFIX, initial_channels = CHANNEL)
-    
-    async def event_ready(self):
-        # Evento que ocorre quando o bot é ligado
-        print(f'Logado como: {self.nick}')
-        print(f'O id de usuário é: {self.user_id}')
-
-    @routines.routine(seconds=60, wait_first=True)
-    async def check_stream_status():
-        stream = await bot.fetch_streams(user_logins = CHANNEL)
-        if stream:
-            time_delta = datetime.now(timezone.utc) - stream[0].started_at
-            print(f"Nena está on há: {format_timedelta(time_delta)}")
-            if time_delta.total_seconds() < 60:
-                chan = bot.get_channel(CHANNEL[0])
-                if chan:
-                    chat = model.create_chat()
-                    response = model.send_message("A Nena acabou de começar uma live! Dê um oi ao pessoal do chat!", chat=chat)
-                    await chan.send(response.text)
-        else:
-            print("Nena está off")
-
-    @commands.cooldown(rate=1, per=10, bucket=commands.Bucket.channel)
-    @commands.command()
-    async def ask(self, ctx: commands.Context, *, message: str,) -> None:
-        # Comando !ask, que será chamado quando algum usuário utilizá-lo
-        global chat
-        print(f"{ctx.author.name} diz: {message}")
+# this is where we set up the bot
+async def run():
+    # set up twitch api instance and call auth function in auth.py to get tokens
+    twitch = await Twitch(APP_ID, authenticate_app=False)
+    twitch.auto_refresh_auth = False
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
         try:
-            response = model.send_message(message, chat, ctx.author.name)
-            await ctx.send(response.text)
-        except commands.errors.CommandOnCooldown:
-            await ctx.send("Comando em cooldown...")
-            
-    async def event_command_error(self, ctx, error: Exception, *, message :str) -> None:
-        if isinstance(error, commands.CommandOnCooldown):
-            print(f"{ctx.author.name} diz: {message}")
-            await ctx.send("Comando em cooldown...")
-
-    check_stream = check_stream_status.start()
-
-max_retries = 3
-retry_delay = 1
-bot = Bot()
-
-for attempt in range(1, max_retries + 1):
-    try:
-        # Inicia o bot
-        print("Bot iniciando...")
-        bot.run()
-    except twitchio.errors.AuthenticationError as e:
-        # Erro quando os tokens expiram
-        if attempt == max_retries:
-            print("Número máximo de tentativas alcançado")
+            with open('encrypted_access.bin', 'rb') as file:
+                    encrypted_data = file.read()
+            decrypted_data = cipher_suite.decrypt(encrypted_data)
+            token_dict = json.loads(decrypted_data.decode())
+            print("Autenticando...")
+            await twitch.set_user_authentication(token_dict["access_token"], USER_SCOPE)
             break
-        else:
-            print("Falha na autenticação, tentando novo token")
-            print(e)
-            bot.close()
-            asyncio.run(auth.refresh())
-            token = os.getenv("ACCESS_TOKEN")
-            time.sleep(retry_delay)
+        
+        except InvalidTokenException as e:
+            if attempt == max_retries:
+                print("Falha ao gerar um novo token, fechando o programa.")
+                await twitch.close()
+                break
+            else:
+                print("Token inválido! Gerando um token novo...")
+                await auth.refresh()      
+
+    # create chat instance
+    chat = await Chat(twitch)
+
+    # register the handlers for the events you want
+
+    # listen to when the bot is done starting up and ready to join channels
+    chat.register_event(ChatEvent.READY, on_ready)
+
+    # registrando o comando ask
+    chat.register_command('ask', ask_command, command_middleware=[ChannelUserCommandCooldown(10,
+                                                execute_blocked_handler=handle_blocked_user)])
+
+    # we are done with our setup, lets start this bot up!
+    chat.start()
+
+    # lets run till we press enter in the console
+    try:
+        input('press ENTER to stop\n')
+    finally:
+        # now we can close the chat bot and the twitch api client
+        chat.stop()
+        await twitch.close()
+
+# lets run our setup
+asyncio.run(run())
