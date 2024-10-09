@@ -10,7 +10,7 @@ from cryptography.fernet import Fernet
 
 APP_ID = 'koyw45naylibn6z1p8rajnjo1rxgv6'
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
-TARGET_CHANNEL = "jose_gtj"
+TARGET_CHANNEL = "nenanee_"
 chat_model = model.create_chat()
 chat = None
 
