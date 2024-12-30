@@ -13,11 +13,20 @@ import asyncio
 key = os.getenv("ENCRYPT_KEY")
 cipher_suite = Fernet(key)
 
-with open('encrypted_access.bin', 'rb') as file:
-        encrypted_data = file.read()
-decrypted_data = cipher_suite.decrypt(encrypted_data)
-token_dict = json.loads(decrypted_data.decode())
+def decrypt_token(encrypted_file):
+    try:
+        with open(encrypted_file, 'rb') as file:
+            encrypted_data = file.read()
+    except FileNotFoundError as e:
+        asyncio.run(auth.auth())
+        with open(encrypted_file, 'rb') as file:
+            encrypted_data = file.read()
+    finally:
+        decrypted_data = cipher_suite.decrypt(encrypted_data)
+        token_dict = json.loads(decrypted_data.decode())
+        return token_dict
 
+token_dict = decrypt_token("encrypted_access.bin")
 token = token_dict["access_token"]
 PREFIX = "!"
 CHANNEL = ["nenanee_"]
@@ -69,15 +78,15 @@ class Bot(commands.Bot):
         stream = await bot.fetch_streams(user_logins = CHANNEL)
         if stream:
             time_delta = datetime.now(timezone.utc) - stream[0].started_at
-            print(f"Nena está on há: {format_timedelta(time_delta)}")
+            print(f"{CHANNEL[0]} está on há: {format_timedelta(time_delta)}")
             if time_delta.total_seconds() < 60:
                 chan = bot.get_channel(CHANNEL[0])
                 if chan:
                     chat = model.create_chat()
-                    response = model.send_message("A Nena acabou de começar uma live! Dê um oi ao pessoal do chat!", chat=chat)
+                    response = model.send_message(f"{CHANNEL} acabou de começar uma live! Dê um oi ao pessoal do chat!", chat=chat)
                     await chan.send(response.text)
         else:
-            print("Nena está off")
+            print(f"{CHANNEL[0]} está off...")
 
     @commands.cooldown(rate=1, per=10, bucket=commands.Bucket.channel)
     @commands.command()
@@ -117,5 +126,6 @@ for attempt in range(1, max_retries + 1):
             print(e)
             bot.close()
             asyncio.run(auth.refresh())
-            token = os.getenv("ACCESS_TOKEN")
+            token_dict = decrypt_token("encrypted_access.bin")
+            token = token_dict["access_token"]
             time.sleep(retry_delay)
