@@ -50,11 +50,11 @@ async def run():
         try:
             with open('encrypted_access.bin', 'rb') as file:
                     encrypted_data = file.read()
-            decrypted_data = cipher_suite.decrypt(encrypted_data)
-            token_dict = json.loads(decrypted_data.decode())
-            print("Autenticando...")
-            await twitch.set_user_authentication(token_dict["access_token"], USER_SCOPE)
-            break
+
+        except FileNotFoundError as e:
+            await auth.auth()
+            with open('encrypted_access.bin', 'rb') as file:
+                    encrypted_data = file.read()
 
         except InvalidTokenException as e:
             if attempt == max_retries:
@@ -64,6 +64,13 @@ async def run():
             else:
                 print("Token inválido! Gerando um token novo...")
                 await auth.refresh()
+
+        finally:
+            decrypted_data = cipher_suite.decrypt(encrypted_data)
+            token_dict = json.loads(decrypted_data.decode())
+            print("Autenticando...")
+            await twitch.set_user_authentication(token_dict["access_token"], USER_SCOPE)
+            break
 
     # create chat instance
     chat = await Chat(twitch)

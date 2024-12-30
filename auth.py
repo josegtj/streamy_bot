@@ -14,7 +14,7 @@ def generate_random_string(length:int):
     return ''.join(random.choice(letters) for i in range(length))
 
 CLIENT_ID = "koyw45naylibn6z1p8rajnjo1rxgv6"
-CLIENT_SECRET = "rott8hipkpfjg9bqlpfpokaq13ectb"
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = "http://localhost:3000"
 SCOPE = "chat:read+chat:edit"
 STATE = generate_random_string(16)
