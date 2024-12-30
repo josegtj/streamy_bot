@@ -87,7 +87,6 @@ async def auth():
         "redirect_uri":REDIRECT_URI
     }
     request = requests.post(base_url, json=data).json()
-    request["access_token"] = "tokendeacesso"
     dict_str = json.dumps(request)
     encrypted_data = cipher_suite.encrypt(dict_str.encode())
     with open('encrypted_access.bin', 'wb') as file:
