@@ -40,7 +40,8 @@ def send_message(message:str, chat, author:str=""):
             response = chat.send_message(f"Você quase disse besteira! Peça desculpas ao chat e ao {author}")
             return response
         else:
-            print(f"[{datetime.now().strftime("%H:%M:%S")}]:\n{author}: {message}")
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print(f"{current_time}\n{author}: {message}")
             print(f"Streamy: {response.text}")
             return response
 
