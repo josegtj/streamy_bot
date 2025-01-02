@@ -49,13 +49,14 @@ async def run():
     delay = 3
     for attempt in range(1, max_retries + 1):
         try:
-            asyncio.sleep(delay)
+            await asyncio.sleep(delay)
             with open('encrypted_access.bin', 'rb') as file:
                     encrypted_data = file.read()
             decrypted_data = cipher_suite.decrypt(encrypted_data)
             token_dict = json.loads(decrypted_data.decode())
             print("Autenticando...")
             await twitch.set_user_authentication(token_dict["access_token"], USER_SCOPE)
+            break
 
         except FileNotFoundError as e:
             await auth.auth()
