@@ -3,6 +3,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.api_core.exceptions
 import os
 import time
+from datetime import datetime
 
 #Criar o modelo de IA
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -39,7 +40,7 @@ def send_message(message:str, chat, author:str=""):
             response = chat.send_message(f"Você quase disse besteira! Peça desculpas ao chat e ao {author}")
             return response
         else:
-            print(f"---\n{author}: {message}")
-            print(f"Streamy: {response.text}---")
+            print(f"[{datetime.now().strftime("%H:%M:%S")}]:\n{author}: {message}")
+            print(f"Streamy: {response.text}")
             return response
 
