@@ -87,15 +87,4 @@ async def run():
 
     await eventsub.listen_stream_online(channel.id, on_stream_online)
 
-    # lets run till we press enter in the console
-    try:
-        input('press ENTER to stop\n')
-    except KeyboardInterrupt:
-        pass
-    finally:
-        # now we can close the chat bot and the twitch api client
-        await eventsub.stop()
-        chat.stop()
-        await twitch.close()
-
 asyncio.run(run())
