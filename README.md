@@ -3,6 +3,9 @@ Chatbot [TwitchAPI](https://github.com/Teekeks/pyTwitchAPI) do canal da NenaNee_
 
 ## Tutorial
 
+Defina o canal da Twitch em que o bot estará ativo mudando a variável **TARGET_CHANNEL** em main.py
+https://github.com/josegtj/streamy_bot/blob/19239ac276eaea317da44a3b567ba8cab669c202/main.py#L13
+
 Edite o arquivo file_context.txt, dando as instruções de como o Chatbot deve se comportar.
 
 As dependências estão listadas em requirements.txt
