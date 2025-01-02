@@ -2,6 +2,9 @@
 Chatbot [TwitchAPI](https://github.com/Teekeks/pyTwitchAPI) do canal da NenaNee_ que utiliza a API do [Gemini](https://ai.google.dev/gemini-api/docs?hl=pt-br) para responder perguntas dos viewers.
 
 ## Tutorial
+
+Edite o arquivo file_context.txt, dando as instruções de como o Chatbot deve se comportar.
+
 As dependências estão listadas em requirements.txt
 ```
 pip install -r requirementes.txt
