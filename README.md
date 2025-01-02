@@ -10,7 +10,7 @@ Edite o arquivo file_context.txt, dando as instruções de como o Chatbot deve s
 
 As dependências estão listadas em requirements.txt
 ```
-pip install -r requirementes.txt
+pip install -r requirements.txt
 ```
 
 Para funcionar, o bot precisa que 3 variáveis de ambiente sejam definidas:
