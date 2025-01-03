@@ -13,7 +13,7 @@ USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 TARGET_CHANNEL = "nenanee_"
 chat_model = model.create_chat()
 chat = None
-headless = False
+headless = True
 
 key = os.getenv("ENCRYPT_KEY")
 cipher_suite = Fernet(key)
