@@ -13,6 +13,7 @@ USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 TARGET_CHANNEL = "nenanee_"
 chat_model = model.create_chat()
 chat = None
+headless = False
 
 key = os.getenv("ENCRYPT_KEY")
 cipher_suite = Fernet(key)
@@ -59,7 +60,7 @@ async def run():
             break
 
         except FileNotFoundError as e:
-            await auth.auth()
+            await auth.auth(headless)
 
         except InvalidTokenException as e:
             if attempt == max_retries:
