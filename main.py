@@ -8,7 +8,7 @@ from twitchAPI.helper import first
 import auth, model, json, os, asyncio
 from cryptography.fernet import Fernet
 
-APP_ID = 'koyw45naylibn6z1p8rajnjo1rxgv6'
+CLIENT_ID = 'koyw45naylibn6z1p8rajnjo1rxgv6'
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 TARGET_CHANNEL = "nenanee_"
 chat_model = model.create_chat()
@@ -44,7 +44,7 @@ async def on_stream_online(data: StreamOnlineEvent):
 async def run():
     global chat
     # set up twitch api instance and call auth function in auth.py to get tokens
-    twitch = await Twitch(APP_ID, authenticate_app=False)
+    twitch = await Twitch(CLIENT_ID, authenticate_app=False)
     twitch.auto_refresh_auth = False
     max_retries = 3
     delay = 3
