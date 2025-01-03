@@ -66,10 +66,10 @@ def run_server():
 
 def get_code(headless:bool):
     global code
-    if headless:
-        print(f"Cole o link no seu navegador, depois cole o código aqui \n {auth_url}")
+    if headless == True:
+        print(f"Cole o link no seu navegador, depois cole o código aqui\n{auth_url}")
         while code == None:
-            code = input()
+            code = input("Código: ")
         else:
             return code
     else:
