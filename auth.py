@@ -38,7 +38,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
-                self.wfile.write('Autenticado! Pode fechar a página'.encode("ISO-8859-1"))
+                self.wfile.write('Autenticado! Pode fechar a página \n Código de autenticação: '.encode("ISO-8859-1") + code)
         else:
             self.send_response(500)
             self.send_header('Content-type', 'text/html')
@@ -64,19 +64,26 @@ def run_server():
     server_thread.start()
         
 
-def get_code():
-    print(f"Autenticação necessária: {auth_url}")
-    server_thread = Thread(target=run_server)
-    server_thread.daemon = True
-    server_thread.start()
-    server_thread.join()
-    while code == None:
-        continue
+def get_code(headless:bool):
+    if headless:
+        print(f"Cole o link no seu navegador, depois cole o código aqui \n {auth_url}")
+        while code == None:
+            code = input()
+        else:
+            return code
     else:
-        return code
+        print(f"Autenticação necessária: {auth_url}")
+        server_thread = Thread(target=run_server)
+        server_thread.daemon = True
+        server_thread.start()
+        server_thread.join()
+        while code == None:
+            continue
+        else:
+            return code
     
-async def auth():
-    code = get_code()
+async def auth(headless:bool):
+    code = get_code(headless)
     base_url = "https://id.twitch.tv/oauth2/token"
     grant_type = "authorization_code"
     data = {
