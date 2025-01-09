@@ -41,7 +41,7 @@ def send_message(message:str, chat, author:str=""):
             return response
         else:
             current_time = datetime.now().strftime("%H:%M:%S")
-            print(f"{current_time}\n{author}: {message}")
+            print(f"\n[{current_time}]: {author}: {message}")
             print(f"Streamy: {response.text}")
             return response
 
