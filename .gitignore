@@ -2,3 +2,4 @@ __pycache__/
 venv
 encrypted_access.bin
 file_context.txt
+*.log
