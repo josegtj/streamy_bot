@@ -1,12 +1,12 @@
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.api_core.exceptions
-import os
+from core.settings import settings
 import time
 from datetime import datetime
 
 #Criar o modelo de IA
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+genai.configure(api_key=settings.GENAI_API_KEY)
 #Arquivo contendo as características do modelo
 context = open("file_context.txt", "r", encoding="UTF-8")
 #Escolhendo o modelo utilizado, passando o contexto e as opções de segurança

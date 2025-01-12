@@ -3,3 +3,6 @@ venv
 encrypted_access.bin
 file_context.txt
 *.log
+.venv
+.idea
+.env

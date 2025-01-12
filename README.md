@@ -1,4 +1,7 @@
 # Streamy
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-886FBF?style=for-the-badge&logo=googlegemini&logoColor=fff)
+
 Chatbot [TwitchAPI](https://github.com/Teekeks/pyTwitchAPI) do canal da NenaNee_ que utiliza a API do [Gemini](https://ai.google.dev/gemini-api/docs?hl=pt-br) para responder perguntas dos viewers.
 
 ## Tutorial

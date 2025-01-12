@@ -1,9 +1,8 @@
 from cryptography.fernet import Fernet
+from core.settings import settings
 import json
-import os
 
-key = os.getenv("ENCRYPT_KEY")
-cipher_suite = Fernet(key)
+cipher_suite = Fernet(settings.ENCRYPT_KEY)
 
 with open('encrypted_access.bin', 'rb') as file:
         encrypted_data = file.read()
