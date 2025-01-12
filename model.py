@@ -1,7 +1,7 @@
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.api_core.exceptions
-from danilo.core.settings import settings
+from core.settings import settings
 import time
 from datetime import datetime
 

@@ -4,7 +4,7 @@ from cryptography.fernet import Fernet
 from threading import Thread
 from urllib.parse import urlparse, parse_qs, quote
 from http.server import SimpleHTTPRequestHandler, HTTPServer
-from danilo.core.settings import settings
+from core.settings import settings
 
 code = None
 

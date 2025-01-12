@@ -1,5 +1,5 @@
 from cryptography.fernet import Fernet
-from danilo.core.settings import settings
+from core.settings import settings
 import json
 
 cipher_suite = Fernet(settings.ENCRYPT_KEY)

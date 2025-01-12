@@ -5,7 +5,7 @@ from twitchAPI.chat.middleware import ChannelCommandCooldown
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.object.eventsub import StreamOnlineEvent
 from twitchAPI.helper import first
-from danilo.core.settings import settings
+from core.settings import settings
 import auth, model, json, asyncio
 from cryptography.fernet import Fernet
 
