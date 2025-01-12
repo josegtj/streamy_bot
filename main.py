@@ -1,6 +1,6 @@
 from twitchAPI.twitch import Twitch
 from twitchAPI.type import AuthScope, ChatEvent, InvalidTokenException
-from twitchAPI.chat import Chat, EventData, ChatCommand
+from twitchAPI.chat import Chat, EventData, ChatCommand, ChatMessage
 from twitchAPI.chat.middleware import ChannelCommandCooldown
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.object.eventsub import StreamOnlineEvent
@@ -9,6 +9,7 @@ import auth, model, json, os, asyncio
 from cryptography.fernet import Fernet
 
 CLIENT_ID = 'koyw45naylibn6z1p8rajnjo1rxgv6'
+CLIENT_NICK = "streamy_bot_"
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 TARGET_CHANNEL = "nenanee_"
 chat_model = model.create_chat()
@@ -30,6 +31,16 @@ async def ask_command(cmd: ChatCommand):
         global chat_model
         response = model.send_message(cmd.parameter, chat_model, cmd.user.name)
         await cmd.reply(response.text)
+
+# respondendo à mensagens direcionadas ao bot
+async def responder_reply(msg: ChatMessage):
+    global chat_model
+    if msg.reply_parent_user_login == CLIENT_NICK:
+        response = model.send_message(msg.text, chat_model, msg.user.name, isReply=True, msgAnterior=msg.reply_parent_msg_body.replace("\\s", " "))
+        await msg.reply(response.text)
+    elif CLIENT_NICK in msg.text.lower():
+        response = model.send_message(msg.text, chat_model, msg.user.name)
+        await msg.reply(response.text)
 
 async def handle_blocked_user(cmd: ChatCommand):
     await cmd.reply("/me Comando em cooldown...")
@@ -78,7 +89,10 @@ async def run():
     chat.register_command('ask', ask_command, command_middleware=[ChannelCommandCooldown(10,
                                                 execute_blocked_handler=handle_blocked_user)])
     
+    # registrando o bot para detectar mensagens direcionadas à ele, ou quando a live começar
     chat.register_event(ChatEvent.READY, on_ready)
+    chat.register_event(ChatEvent.MESSAGE, responder_reply)
+
     chat.start()
 
     channel = await first(twitch.get_users(logins=TARGET_CHANNEL))

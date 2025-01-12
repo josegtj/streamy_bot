@@ -19,12 +19,16 @@ def create_chat():
     return chat
 
 #Criando o chat e mandando a mensagem
-def send_message(message:str, chat, author:str=""):
+def send_message(message:str, chat, author:str="", isReply:bool=False, msgAnterior:str=""):
     max_retries = 3
     retry_delay = 1
     for attempt in range(1, max_retries + 1):
         try:
-            response = chat.send_message(f"{author} diz: {message}")
+            if isReply:
+                print(msgAnterior)
+                response = chat.send_message(f"Em resposta à sua mensagem anterior, que dizia {msgAnterior}, {author} diz: {message}")
+            else:
+                response = chat.send_message(f"{author} diz: {message}")
         except google.api_core.exceptions.InternalServerError as e:
             if attempt == max_retries:
                 print("Número máximo de tentativas alcançado")
