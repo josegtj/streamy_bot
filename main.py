@@ -5,22 +5,19 @@ from twitchAPI.chat.middleware import ChannelCommandCooldown
 from twitchAPI.eventsub.websocket import EventSubWebsocket
 from twitchAPI.object.eventsub import StreamOnlineEvent
 from twitchAPI.helper import first
-import auth, model, json, os, asyncio
+from danilo.core.settings import settings
+import auth, model, json, asyncio
 from cryptography.fernet import Fernet
 
-CLIENT_ID = 'koyw45naylibn6z1p8rajnjo1rxgv6'
-CLIENT_NICK = "streamy_bot_"
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
-TARGET_CHANNEL = "nenanee_"
 chat_model = model.create_chat()
 chat = None
 headless = False
 
-key = os.getenv("ENCRYPT_KEY")
-cipher_suite = Fernet(key)
+cipher_suite = Fernet(settings.ENCRYPT_KEY)
 
 async def on_ready(cmd: EventData):
-    await cmd.chat.join_room(TARGET_CHANNEL)
+    await cmd.chat.join_room(settings.TARGET_CHANNEL)
     print("Bot está operante...")
 
 # this will be called whenever the !ask command is issued
@@ -35,10 +32,10 @@ async def ask_command(cmd: ChatCommand):
 # respondendo à mensagens direcionadas ao bot
 async def responder_reply(msg: ChatMessage):
     global chat_model
-    if msg.reply_parent_user_login == CLIENT_NICK:
+    if msg.reply_parent_user_login == settings.CLIENT_NICK:
         response = model.send_message(msg.text, chat_model, msg.user.name, isReply=True, msgAnterior=msg.reply_parent_msg_body.replace("\\s", " "))
         await msg.reply(response.text)
-    elif CLIENT_NICK in msg.text.lower():
+    elif settings.CLIENT_NICK in msg.text.lower():
         response = model.send_message(msg.text, chat_model, msg.user.name)
         await msg.reply(response.text)
 
@@ -47,15 +44,15 @@ async def handle_blocked_user(cmd: ChatCommand):
 
 async def on_stream_online(data: StreamOnlineEvent):
     global chat, chat_model
-    print(TARGET_CHANNEL + " está ao vivo!")
+    print(settings.TARGET_CHANNEL + " está ao vivo!")
     response = model.send_message("A live acabou de começar, dê um oi pro pessoal", chat_model)
-    await chat.send_message(TARGET_CHANNEL, response.text)
+    await chat.send_message(settings.TARGET_CHANNEL, response.text)
 
 # this is where we set up the bot
 async def run():
     global chat
     # set up twitch api instance and call auth function in auth.py to get tokens
-    twitch = await Twitch(CLIENT_ID, authenticate_app=False)
+    twitch = await Twitch(settings.CLIENT_ID, authenticate_app=False)
     twitch.auto_refresh_auth = False
     max_retries = 3
     delay = 3
@@ -95,7 +92,7 @@ async def run():
 
     chat.start()
 
-    channel = await first(twitch.get_users(logins=TARGET_CHANNEL))
+    channel = await first(twitch.get_users(logins=settings.TARGET_CHANNEL))
     
     eventsub = EventSubWebsocket(twitch)
     eventsub.start()

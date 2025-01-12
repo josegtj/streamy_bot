@@ -1,28 +1,14 @@
-import random
-import string
 import requests
 import json
-import asyncio
-import os
 from cryptography.fernet import Fernet
 from threading import Thread
 from urllib.parse import urlparse, parse_qs, quote
 from http.server import SimpleHTTPRequestHandler, HTTPServer
+from danilo.core.settings import settings
 
-def generate_random_string(length:int):
-    letters = string.ascii_letters
-    return ''.join(random.choice(letters) for i in range(length))
-
-CLIENT_ID = "koyw45naylibn6z1p8rajnjo1rxgv6"
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REDIRECT_URI = "http://localhost:3000"
-SCOPE = "chat:read+chat:edit"
-STATE = generate_random_string(16)
-auth_url = f"https://id.twitch.tv/oauth2/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&scope={SCOPE}&state={STATE}"
 code = None
 
-key = os.getenv("ENCRYPT_KEY")
-cipher_suite = Fernet(key)
+cipher_suite = Fernet(settings.ENCRYPT_KEY)
 
 class RequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -32,7 +18,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
         state = query_components.get('state', [None])[0]
 
         if code:
-            if state != STATE:
+            if state != settings.STATE:
                 print("Erro no código de confirmação!")
             else:
                 self.send_response(200)
@@ -67,13 +53,13 @@ def run_server():
 def get_code(headless:bool):
     global code
     if headless == True:
-        print(f"Cole o link no seu navegador, depois cole o código aqui\n{auth_url}")
+        print(f"Cole o link no seu navegador, depois cole o código aqui\n{settings.AUTH_URL}")
         while code == None:
             code = input("Código: ")
         else:
             return code
     else:
-        print(f"Autenticação necessária: {auth_url}")
+        print(f"Autenticação necessária: {settings.AUTH_URL}")
         server_thread = Thread(target=run_server)
         server_thread.daemon = True
         server_thread.start()
@@ -88,11 +74,11 @@ async def auth(headless:bool):
     base_url = "https://id.twitch.tv/oauth2/token"
     grant_type = "authorization_code"
     data = {
-        "client_id":CLIENT_ID,
-        "client_secret":CLIENT_SECRET,
+        "client_id":settings.CLIENT_ID,
+        "client_secret":settings.CLIENT_SECRET,
         "code":code,
         "grant_type":grant_type,
-        "redirect_uri":REDIRECT_URI
+        "redirect_uri":settings.REDIRECT_URI
     }
     request = requests.post(base_url, json=data).json()
     dict_str = json.dumps(request)
@@ -109,8 +95,8 @@ async def refresh():
     base_url = "https://id.twitch.tv/oauth2/token"
     grant_type = "refresh_token"
     data = {
-        "client_id":CLIENT_ID,
-        "client_secret":CLIENT_SECRET,
+        "client_id":settings.CLIENT_ID,
+        "client_secret":settings.CLIENT_SECRET,
         "grant_type":grant_type,
         "refresh_token":quote(token_dict["refresh_token"])
     }
@@ -133,7 +119,7 @@ def revoke_token():
     token_dict = json.loads(decrypted_data.decode())
     base_url = "https://id.twitch.tv/oauth2/revoke"
     data = {
-        "client_id":CLIENT_ID,
+        "client_id":settings.CLIENT_ID,
         "token":token_dict['access_token']
     }
     request = requests.post(base_url, data=data)
