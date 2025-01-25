@@ -10,7 +10,7 @@ genai.configure(api_key=settings.GOOGLE_API_KEY)
 #Arquivo contendo as características do modelo
 context = open("file_context.txt", "r", encoding="UTF-8")
 #Escolhendo o modelo utilizado, passando o contexto e as opções de segurança
-model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=context, 
+model = genai.GenerativeModel('gemini-2.0-flash-exp', system_instruction=context, 
                               safety_settings= {HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT:HarmBlockThreshold.BLOCK_ONLY_HIGH,
 						HarmCategory.HARM_CATEGORY_HARASSMENT:HarmBlockThreshold.BLOCK_ONLY_HIGH,})
 
@@ -41,7 +41,7 @@ def send_message(message:str, chat, author:str="", isReply:bool=False, msgAnteri
         except genai.types.StopCandidateException as e:
             print(e)
             print("Erro nos filtros de segurança, reformulando mensagem.")
-            response = chat.send_message(f"Você quase disse besteira! Peça desculpas ao chat e ao {author}")
+            response = chat.send_message(f"Você quase disse algo inapropriado! Reformule a sua resposta ao {author}")
             return response
         else:
             current_time = datetime.now().strftime("%H:%M:%S")

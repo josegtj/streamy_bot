@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     REDIRECT_URI: str = ""
 
-    REDIRECT_PATH: str
+    REDIRECT_PATH: str = ""
 
     #Aqui estamos definindo de onde vão vir as variáveis de ambiente
     class Config:
