@@ -3,7 +3,7 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import google.api_core.exceptions
 from core.settings import settings
 import time
-from datetime import datetime
+from log import logger
 
 #Criar o modelo de IA
 genai.configure(api_key=settings.GOOGLE_API_KEY)
@@ -31,21 +31,18 @@ def send_message(message:str, chat, author:str="", isReply:bool=False, msgAnteri
                 response = chat.send_message(f"{author} diz: {message}")
         except google.api_core.exceptions.InternalServerError as e:
             if attempt == max_retries:
-                print("Número máximo de tentativas alcançado")
-                response = {"text":"Peço perdão pelo transtorno, mas parece que o meu cérebro deu uma fritada! Tente novamente daqui a pouco."}
+                logger.critical("Número máximo de tentativas alcançado")
+                response = {"text":"Peço perdão pelo transtorno, mas parece que o meu cérebro deu uma fritada! Tente novamente em alguns minutos."}
                 return response
             else:
-                print(e)
-                print(f"Erro interno do sistema Google, tentando novamente em {retry_delay} segundos")
+                logger.error(e)
+                logger.info(f"Erro interno do sistema Google, tentando novamente em {retry_delay} segundos")
                 time.sleep(retry_delay)
         except genai.types.StopCandidateException as e:
-            print(e)
-            print("Erro nos filtros de segurança, reformulando mensagem.")
-            response = chat.send_message(f"Você quase disse algo inapropriado! Reformule a sua resposta ao {author}")
+            logger.error(e)
+            logger.info("Erro nos filtros de segurança, reformulando mensagem.")
+            response = chat.send_message(f"Você quase disse algo inapropriado! Reformule a sua resposta à {author}, que dizia: {message}")
             return response
         else:
-            current_time = datetime.now().strftime("%H:%M:%S")
-            print(f"\n[{current_time}]: {author}: {message}")
-            print(f"Streamy: {response.text}")
             return response
 
